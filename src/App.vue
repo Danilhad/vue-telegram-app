@@ -1,26 +1,24 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <div id="app" class="min-h-screen bg-gray-100">
+    <TelegramWebApp />
+    <router-view />
+  </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import { onMounted } from 'vue'
+import { initTelegramWebApp } from './utils/telegram'
+import TelegramWebApp from './components/TelegramWebApp.vue'
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
+    TelegramWebApp
+  },
+  setup() {
+    onMounted(() => {
+      initTelegramWebApp()
+    })
   }
 }
 </script>
-
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>
