@@ -72,3 +72,16 @@ export const formatUserInfo = (user) => {
     photoUrl: user.photo_url,
   }
 }
+
+// Добавим функцию для получения URL аватарки
+export const getUserAvatarUrl = (user) => {
+  if (!user) return null
+  
+  // Если есть photo_url от Telegram, используем его
+  if (user.photo_url) {
+    return user.photo_url
+  }
+  
+  // Иначе создаем граватар или используем дефолтную аватарку
+  return `/default-avatar.png`
+}

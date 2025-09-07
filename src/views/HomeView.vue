@@ -1,112 +1,79 @@
 <template>
-  <div class="container mx-auto px-4 py-8">
-    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6">
+  <div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-xl shadow-md p-6">
       <h1 class="text-2xl font-bold text-center mb-6">
-        Vue Telegram App
+        Добро пожаловать!
       </h1>
       
-      <div v-if="userInfo" class="mb-6">
-        <h2 class="text-lg font-semibold mb-3">User Info</h2>
-        <div class="bg-gray-50 p-4 rounded-lg">
-          <p><span class="font-medium">ID:</span> {{ userInfo.id }}</p>
-          <p><span class="font-medium">Name:</span> {{ userInfo.firstName }} {{ userInfo.lastName }}</p>
-          <p><span class="font-medium">Username:</span> {{ userInfo.username }}</p>
-          <p><span class="font-medium">Language:</span> {{ userInfo.languageCode }}</p>
-        </div>
+      <div v-if="userInfo" class="text-center mb-6">
+        <UserAvatar 
+          :src="userAvatar" 
+          :alt="userName"
+          :size="'4rem'"
+          :border="true"
+          class="mx-auto mb-4"
+        />
+        <h2 class="text-xl font-semibold">{{ userName }}</h2>
+        <p class="text-gray-600">@{{ userInfo.username }}</p>
       </div>
       
-      <div class="space-y-3">
-        <button 
-          @click="showAlert" 
-          class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg transition"
-        >
-          Show Alert
-        </button>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-blue-50 p-4 rounded-lg">
+          <h3 class="font-semibold text-blue-800">Ваш ID</h3>
+          <p class="text-blue-600">{{ userInfo?.id }}</p>
+        </div>
         
-        <button 
-          @click="showConfirm" 
-          class="w-full bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg transition"
-        >
-          Show Confirm
-        </button>
-        
-        <button 
-          @click="toggleMainButton" 
-          class="w-full bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded-lg transition"
-        >
-          {{ mainButtonVisible ? 'Hide' : 'Show' }} Main Button
-        </button>
+        <div class="bg-green-50 p-4 rounded-lg">
+          <h3 class="font-semibold text-green-800">Язык</h3>
+          <p class="text-green-600">{{ userInfo?.languageCode || 'Не указан' }}</p>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted } from 'vue'
-import { useTelegram, formatUserInfo } from '@/utils/telegram'
+import { computed } from 'vue'
+import { useTelegram } from '@/utils/telegram'
+import UserAvatar from '@/components/UserAvatar.vue'
 
 export default {
   name: 'HomeView',
+  components: {
+    UserAvatar
+  },
   setup() {
     const telegram = useTelegram()
-    const userInfo = ref(null)
-    const mainButtonVisible = ref(false)
-
-    onMounted(() => {
-      if (telegram) {
-        // Получаем информацию о пользователе
-        userInfo.value = formatUserInfo(telegram.initDataUnsafe.user)
-        
-        // Настраиваем кнопку "Назад"
-        telegram.backButton.show()
-        telegram.backButton.onClick(() => {
-          console.log('Back button clicked')
-        })
-      }
-    })
-
-    onUnmounted(() => {
-      if (telegram) {
-        telegram.backButton.hide()
-        telegram.mainButton.hide()
-      }
-    })
-
-    const showAlert = () => {
-      if (telegram) {
-        telegram.showAlert('Это тестовое сообщение!')
-      }
-    }
-
-    const showConfirm = () => {
-      if (telegram) {
-        telegram.showConfirm('Вы уверены?', (confirmed) => {
-          console.log('User confirmed:', confirmed)
-        })
-      }
-    }
-
-    const toggleMainButton = () => {
-      if (telegram) {
-        if (mainButtonVisible.value) {
-          telegram.mainButton.hide()
-        } else {
-          telegram.mainButton.setText('Действие')
-          telegram.mainButton.show()
-          telegram.mainButton.onClick(() => {
-            console.log('Main button clicked')
-          })
+    
+    const userInfo = computed(() => {
+      if (telegram?.initDataUnsafe?.user) {
+        return {
+          id: telegram.initDataUnsafe.user.id,
+          firstName: telegram.initDataUnsafe.user.first_name,
+          lastName: telegram.initDataUnsafe.user.last_name,
+          username: telegram.initDataUnsafe.user.username,
+          languageCode: telegram.initDataUnsafe.user.language_code,
+          photoUrl: telegram.initDataUnsafe.user.photo_url
         }
-        mainButtonVisible.value = !mainButtonVisible.value
       }
-    }
+      return null
+    })
+
+    const userAvatar = computed(() => {
+      return userInfo.value?.photoUrl || '/default-avatar.png'
+    })
+
+    const userName = computed(() => {
+      if (userInfo.value) {
+        return `${userInfo.value.firstName} ${userInfo.value.lastName}`
+      }
+      return 'Пользователь'
+    })
 
     return {
       userInfo,
-      mainButtonVisible,
-      showAlert,
-      showConfirm,
-      toggleMainButton
+      userAvatar,
+      userName
     }
   }
 }
